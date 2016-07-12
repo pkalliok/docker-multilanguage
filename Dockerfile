@@ -33,26 +33,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Java
 
-COPY docker-java-home /usr/local/bin
-RUN chmod +x /usr/local/bin/docker-java-home \
- && test "$JAVA_HOME" = "$(docker-java-home)" \
- && /var/lib/dpkg/info/ca-certificates-java.postinst configure
+COPY docker-java-home /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-java-home
+RUN test "$JAVA_HOME" = "$(docker-java-home)"
+RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
 
 # Clojure + Leiningen
 
-WORKDIR /tmp
-RUN mkdir -p $LEIN_INSTALL \
-  && wget --quiet https://github.com/technomancy/leiningen/archive/$LEIN_VERSION.tar.gz \
-  && echo "f7643a14fd8a4d5c19eeb416db8ea549d8d2c18a *$LEIN_VERSION.tar.gz" | sha1sum -c - \
-  && mkdir ./leiningen \
-  && tar -xzf $LEIN_VERSION.tar.gz  -C ./leiningen/ --strip-components=1 \
-  && mv leiningen/bin/lein-pkg $LEIN_INSTALL/lein \
-  && rm -rf $LEIN_VERSION.tar.gz ./leiningen \
-  && chmod 0755 $LEIN_INSTALL/lein \
-  && wget --quiet https://github.com/technomancy/leiningen/releases/download/$LEIN_VERSION/leiningen-$LEIN_VERSION-standalone.zip \
-  && wget --quiet https://github.com/technomancy/leiningen/releases/download/$LEIN_VERSION/leiningen-$LEIN_VERSION-standalone.zip.asc \
-  && gpg --keyserver pool.sks-keyservers.net --recv-key 2E708FB2FCECA07FF8184E275A92E04305696D78 \
-  && gpg --verify leiningen-$LEIN_VERSION-standalone.zip.asc \
-  && rm leiningen-$LEIN_VERSION-standalone.zip.asc \
-  && mv leiningen-$LEIN_VERSION-standalone.zip /usr/share/java/leiningen-$LEIN_VERSION-standalone.jar \
+RUN curl https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein \
+ > /usr/local/bin/lein \
+ && chmod +x /usr/local/bin/lein \
+ && (echo | lein repl)
 
